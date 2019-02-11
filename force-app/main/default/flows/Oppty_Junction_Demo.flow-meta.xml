@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <decisions>
+        <name>Selected_Contact_Contains_Id</name>
+        <label>Selected Contact Contains I</label>
+        <locationX>762</locationX>
+        <locationY>539</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Contains_ID</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Select_Contacts</leftValueReference>
+                <operator>Contains</operator>
+                <rightValue>
+                    <elementReference>SelectedContact.Id</elementReference>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Create_Opportunity_Contact</targetReference>
+            </connector>
+            <label>Contains ID</label>
+        </rules>
+    </decisions>
     <dynamicChoiceSets>
         <name>AccountContacts</name>
         <dataType>String</dataType>
@@ -17,15 +39,15 @@
     <interviewLabel>Oppty Junction Demo {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Oppty Junction Demo</label>
     <loops>
-        <name>Create_Opporutnity_Contacts</name>
-        <label>Create Opporutnity Contacts</label>
-        <locationX>605</locationX>
-        <locationY>70</locationY>
+        <name>Get_Selected_Contacts2</name>
+        <label>Get Selected Contacts</label>
+        <locationX>427</locationX>
+        <locationY>385</locationY>
         <assignNextValueToReference>SelectedContact</assignNextValueToReference>
-        <collectionReference>SelectedContacts</collectionReference>
+        <collectionReference>ContactsGroup</collectionReference>
         <iterationOrder>Asc</iterationOrder>
         <nextValueConnector>
-            <targetReference>Create_Opportunity_Contact</targetReference>
+            <targetReference>Selected_Contact_Contains_Id</targetReference>
         </nextValueConnector>
     </loops>
     <processMetadataValues>
@@ -46,6 +68,9 @@
         <label>Create Opportunity Contact</label>
         <locationX>780</locationX>
         <locationY>72</locationY>
+        <connector>
+            <targetReference>Get_Selected_Contacts2</targetReference>
+        </connector>
         <inputAssignments>
             <field>Contact__c</field>
             <value>
@@ -60,6 +85,26 @@
         </inputAssignments>
         <object>Opportunity_Contact__c</object>
     </recordCreates>
+    <recordLookups>
+        <name>Get_Contacts</name>
+        <label>Get Contacts</label>
+        <locationX>406</locationX>
+        <locationY>177</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Selected_Contacts2</targetReference>
+        </connector>
+        <filters>
+            <field>AccountId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Opportunity.AccountId</elementReference>
+            </value>
+        </filters>
+        <object>Contact</object>
+        <outputReference>ContactsGroup</outputReference>
+        <queriedFields>Id</queriedFields>
+    </recordLookups>
     <recordLookups>
         <name>Get_Opportunity</name>
         <label>Get Opportunity</label>
@@ -81,36 +126,16 @@
         <queriedFields>Id</queriedFields>
         <queriedFields>AccountId</queriedFields>
     </recordLookups>
-    <recordLookups>
-        <name>Get_Selected_Contacts</name>
-        <label>Get Selected Contacts</label>
-        <locationX>446</locationX>
-        <locationY>65</locationY>
-        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
-        <connector>
-            <targetReference>Create_Opporutnity_Contacts</targetReference>
-        </connector>
-        <filters>
-            <field>Id</field>
-            <operator>EqualTo</operator>
-            <value>
-                <elementReference>Select_Contacts</elementReference>
-            </value>
-        </filters>
-        <object>Contact</object>
-        <outputReference>SelectedContacts</outputReference>
-        <queriedFields>Id</queriedFields>
-    </recordLookups>
     <screens>
         <name>Select_Contact_Records</name>
         <label>Select Contact Records</label>
-        <locationX>315</locationX>
-        <locationY>78</locationY>
+        <locationX>330</locationX>
+        <locationY>71</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <connector>
-            <targetReference>Get_Selected_Contacts</targetReference>
+            <targetReference>Get_Contacts</targetReference>
         </connector>
         <fields>
             <name>Select_Contacts</name>
@@ -125,6 +150,14 @@
     </screens>
     <startElementReference>Get_Opportunity</startElementReference>
     <status>Active</status>
+    <variables>
+        <name>ContactsGroup</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>Contact</objectType>
+    </variables>
     <variables>
         <name>Opportunity</name>
         <dataType>SObject</dataType>
